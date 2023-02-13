@@ -1,0 +1,21 @@
+module topModule(input [7:0]IR,input p1,input p2, input p3, input p4, output reg [15:0]result, input reset, input clk, input display);
+
+wire   [31:0]D1out;
+wire   [31:0]D2out;
+reg [31:0]Instruction;
+wire [31:0]Din;
+reg_file M1(1'b1,Din,Instruction[15:11],Instruction[25:21], Instruction [20:16],  D1out, D2out, reset, clk);
+ALU M2(reset,Instruction [5:0], D1out, D2out, Din) ;
+always@(reset,clk) begin
+   if (reset) begin 
+   Instruction=0;
+   result=0;
+   end
+   else
+   if(p1) Instruction[31:24]= IR[7:0];
+   else if(p2) Instruction[23:16]= IR[7:0];
+   else if(p3) Instruction[15:8]= IR[7:0];
+   else if (p4) Instruction[7:0]= IR[7:0];
+   if (display) result=Din[15:0];
+   end
+endmodule
