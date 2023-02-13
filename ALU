@@ -1,0 +1,154 @@
+module ALU(input reset,input [5:0] opcode, input [31:0] rs1, rs2, output reg [31:0] rd);
+
+reg [32:0]w;
+//reg func_code;
+ 
+
+parameter ADD = 6'b000000;
+parameter SUB = 6'b000001;
+parameter AND = 6'b000010;
+parameter OR  = 6'b000011;
+parameter XOR = 6'b000100;
+parameter SLL = 6'b000101;
+parameter SRL = 6'b000110;
+parameter ROL = 6'b000111;
+parameter ROR = 6'b001000;
+parameter SLT = 6'b001001;
+parameter SGT = 6'b001010;
+parameter SLE = 6'b001011;
+parameter SGE = 6'b001100;
+parameter UGT = 6'b001101;
+parameter ULT = 6'b001110;
+parameter ULE = 6'b001111;
+parameter UGE = 6'b010000;
+parameter SRA = 6'b010001;
+
+always@(*) begin
+//func_code = opcode
+    if (reset)
+        rd=0;
+   else if(opcode == ADD)
+        begin
+       rd <= rs1 + rs2;
+        
+        end
+    else if(opcode == SUB)
+        begin
+        rd <= rs1 - rs2;
+        
+        end
+    else if(opcode == AND)
+        begin
+        rd <= rs1 & rs2;
+        end
+    else if(opcode == OR)
+        begin
+        rd <= rs1 | rs2;
+        end
+    else if(opcode == XOR)
+        begin
+        rd<= rs1^rs2;
+        end
+    else if(opcode == SLL)
+        begin
+        if(rs2<32)
+            rd <= rs1 << rs2;
+        else 
+            rd<=32'b0;
+        end
+    else if(opcode == SRL)
+        begin
+        if(rs2<32)
+            rd <= rs1 >> rs2;
+        else 
+            rd<=32'b0;
+        end
+    else if(opcode == SRA)
+        if(rs2<32)
+                rd <= rs1 >>> rs2;
+        else
+             if(rs1[31]==1)
+                 rd<='hFFFFFFFF;
+             else
+                 rd<='h00000000;
+                 
+    else if(opcode == ROR)
+        begin
+       rd = {rs1[0], rs1[31:1]} ;
+        end
+    else if(opcode == ROL)
+        begin
+                if(rs1[31]==0)
+                    rd <= rs1 << 1;        
+                else
+                    rd <= rs1 <<< 1;
+        end       
+    else if(opcode == SLT) begin
+        w=rs1-rs2;
+        if (rs1[31]^rs2[31]==1)
+          if(rs1[31]==1)
+          rd = 'hffffffff;
+          else
+          rd = 'h00000000;
+        else
+            if(w[32]==1) rd='hffffffff;
+            else rd=1'b0;
+   end
+    else if(opcode == SGT) begin
+        w=rs1-rs2;
+        if (rs1[31]^rs2[31]==1)
+          if(rs1[31]==1)
+          rd = 1'b0;
+          else
+          rd ='hffffffff;
+        else
+            if(w[32]==1|| w==0) rd=1'b0;
+            else rd='hffffffff;
+    end
+    else if(opcode == SLE) begin
+        w=rs1-rs2;
+        if (rs1[31]^rs2[31]==1)
+          if(rs1[31]==1)
+          rd = 'hffffffff;
+          else
+          rd = 1'b0;
+        else
+            if(w[32]==1|| w==0) rd='hffffffff;
+            else rd=1'b0;
+    end
+    else if(opcode == SGE)
+begin
+        w=rs1-rs2;
+        if (rs1[31]^rs2[31]==1)
+          if(rs1[31]==1)
+          rd = 1'b0;
+          else
+          rd = 1'b1;
+        else if(rs1[31]==0)
+            if(w[32]==1) rd=1'b0;
+            else rd='hffffffff;
+   end
+    else if(opcode == UGT) begin
+        w=rs1-rs2;
+        if(w[32]==1||w==0) rd=1'b0;
+        else rd='hffffffff;
+        end
+    else if(opcode == ULT)
+        begin
+        w=rs1-rs2;
+        if(w[32]==1) rd='hffffffff;
+            else rd=1'b0;
+        end 
+    else if(opcode == ULE) begin
+        w=rs1-rs2;
+        if(w[32]==1||w==0) rd='hffffffff;
+        else rd=1'b0;
+        end
+    else if(opcode == UGE)
+        begin
+        w=rs1-rs2;
+        if(w[32]==1) rd=1'b0;
+            else rd='hffffffff;
+        end         
+end
+endmodule
