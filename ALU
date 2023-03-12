@@ -1,6 +1,6 @@
-module ALU(input reset,input [5:0] opcode, input [31:0] rs1, rs2, output reg [31:0] rd);
+module ALU(input reset, input isRS1zero, input [5:0] opcode, input [31:0] rs1, rs2, output reg [31:0] rd);
 
-reg [32:0]w;
+reg [31:0]w;
 //reg func_code;
  
 
@@ -22,6 +22,11 @@ parameter ULT = 6'b001110;
 parameter ULE = 6'b001111;
 parameter UGE = 6'b010000;
 parameter SRA = 6'b010001;
+parameter LHI=  6'b010010;
+parameter J =  6'b010011;
+parameter JAL =6'b010100;
+parameter BEZ = 6'b010101;
+parameter BNEZ = 6'b010110;
 
 always@(*) begin
 //func_code = opcode
@@ -87,11 +92,11 @@ always@(*) begin
         w=rs1-rs2;
         if (rs1[31]^rs2[31]==1)
           if(rs1[31]==1)
-          rd = 'hffffffff;
+          rd = 'hFFFFFFFF;
           else
           rd = 'h00000000;
         else
-            if(w[32]==1) rd='hffffffff;
+            if(w[32]==1) rd='hFFFFFFFF;
             else rd=1'b0;
    end
     else if(opcode == SGT) begin
@@ -100,20 +105,20 @@ always@(*) begin
           if(rs1[31]==1)
           rd = 1'b0;
           else
-          rd ='hffffffff;
+          rd ='hFFFFFFFF;
         else
             if(w[32]==1|| w==0) rd=1'b0;
-            else rd='hffffffff;
+            else rd='hFFFFFFFF;
     end
     else if(opcode == SLE) begin
         w=rs1-rs2;
         if (rs1[31]^rs2[31]==1)
           if(rs1[31]==1)
-          rd = 'hffffffff;
+          rd = 'hFFFFFFFF;
           else
           rd = 1'b0;
         else
-            if(w[32]==1|| w==0) rd='hffffffff;
+            if(w[32]==1|| w==0) rd='hFFFFFFFF;
             else rd=1'b0;
     end
     else if(opcode == SGE)
@@ -126,29 +131,51 @@ begin
           rd = 1'b1;
         else if(rs1[31]==0)
             if(w[32]==1) rd=1'b0;
-            else rd='hffffffff;
+            else rd='hFFFFFFFF;
    end
     else if(opcode == UGT) begin
         w=rs1-rs2;
         if(w[32]==1||w==0) rd=1'b0;
-        else rd='hffffffff;
+        else rd='hFFFFFFFF;
         end
     else if(opcode == ULT)
         begin
         w=rs1-rs2;
-        if(w[32]==1) rd='hffffffff;
+        if(w[32]==1) rd='hFFFFFFFF;
             else rd=1'b0;
         end 
     else if(opcode == ULE) begin
         w=rs1-rs2;
-        if(w[32]==1||w==0) rd='hffffffff;
+        if(w[32]==1||w==0) rd='hFFFFFFFF;
         else rd=1'b0;
         end
     else if(opcode == UGE)
         begin
         w=rs1-rs2;
         if(w[32]==1) rd=1'b0;
-            else rd='hffffffff;
-        end         
+            else rd='hFFFFFFFF;
+        end    
+    else if(opcode == LHI)
+ 
+    rd = { rs1[31:16], rs2[15:0]};
+    else if(opcode == J)
+ 
+    rd = rs1 + rs2;
+ else if(opcode == BEZ)
+    if(isRS1zero==1)
+    rd = rs1 + rs2;
+    else
+    rd= rs1+4;
+ else if(opcode == BNEZ)
+ begin
+    if(isRS1zero!=1)
+    rd = rs1 + rs2;
+    else
+    rd= rs1+4;
+    end
+ else if(JAL)
+ rd = rs1 + rs2;
+ 
+       
 end
 endmodule
