@@ -1,341 +1,255 @@
-module ALU(input reset, input isRS1zero, input [5:0] opcode, input [31:0] rs1, rs2, output reg [31:0] rd);
+tag_dic = {}
 
-reg [31:0]w;
-//reg func_code;
- 
+opcodes = {
+    'ADDI': '000000',
+    'SUBI':  '000001',
+    'ANDI' : '000010',
+    'ORI'  : '000011',
+    'XORI' : '000100',
+    'SLLI' : '000101',
+    'SRLI' : '000110',
+    'ROLI' : '000111',
+    'RORI' : '001000',
+    'SLTI' : '001001',
+    'SGTI' : '001010',
+    'SLEI' : '001011',
+    'SGEI' : '001100',
+    'UGTI' : '001101',
+    'ULTI' : '001110',
+    'ULEI' : '001111',
+    'UGEI' : '010000',
+    'SRAI' : '010001',
+    'LHI' :  '010010',
+    'J'   :  '010011',
+    'JAL' :  '010100',
+    'BEZ' :  '010101',
+    'BNEZ':  '010110',
+    'SB'  :  '010111',
+    'SW'  :  '011000',
+    'SWH' :  '011001',
+    'LB'  :  '011010',
+    'LW'  :  '011011',
+    'LWH' :  '011100',
+    'JR'  :  '011101',
+    'JALR':  '011110'
 
-parameter ADD = 6'b000000;
-parameter SUB = 6'b000001;
-parameter AND = 6'b000010;
-parameter OR  = 6'b000011;
-parameter XOR = 6'b000100;
-parameter SLL = 6'b000101;
-parameter SRL = 6'b000110;
-parameter ROL = 6'b000111;
-parameter ROR = 6'b001000;
-parameter SLT = 6'b001001;
-parameter SGT = 6'b001010;
-parameter SLE = 6'b001011;
-parameter SGE = 6'b001100;
-parameter UGT = 6'b001101;
-parameter ULT = 6'b001110;
-parameter ULE = 6'b001111;
-parameter UGE = 6'b010000;
-parameter SRA = 6'b010001;
-parameter LHI=  6'b010010;
-parameter J =  6'b010011;
-parameter JAL =6'b010100;
-parameter BEZ = 6'b010101;
-parameter BNEZ = 6'b010110;
 
-always@(*) begin
-//func_code = opcode
-    if (reset)
-        rd=0;
-   else if(opcode == ADD)
-        begin
-       rd <= rs1 + rs2;
-        
-        end
-    else if(opcode == SUB)
-        begin
-        rd <= rs1 - rs2;
-        
-        end
-    else if(opcode == AND)
-        begin
-        rd <= rs1 & rs2;
-        end
-    else if(opcode == OR)
-        begin
-        rd <= rs1 | rs2;
-        end
-    else if(opcode == XOR)
-        begin
-        rd<= rs1^rs2;
-        end
-    else if(opcode == SLL)
-        begin
-        if(rs2<32)
-            rd <= rs1 << rs2;
-        else 
-            rd<=32'b0;
-        end
-    else if(opcode == SRL)
-        begin
-        if(rs2<32)
-            rd <= rs1 >> rs2;
-        else 
-            rd<=32'b0;
-        end
-    else if(opcode == SRA)
-        if(rs2<32)
-                rd <= rs1 >>> rs2;
-        else
-             if(rs1[31]==1)
-                 rd<='hFFFFFFFF;
-             else
-                 rd<='h00000000;
-                 
-    else if(opcode == ROR)
-        begin
-       rd = {rs1[0], rs1[31:1]} ;
-        end
-    else if(opcode == ROL)
-        begin
-                if(rs1[31]==0)
-                    rd <= rs1 << 1;        
-                else
-                    rd <= rs1 <<< 1;
-        end       
-    else if(opcode == SLT) begin
-        w=rs1-rs2;
-        if (rs1[31]^rs2[31]==1)
-          if(rs1[31]==1)
-          rd = 'hFFFFFFFF;
-          else
-          rd = 'h00000000;
-        else
-            if(w[32]==1) rd='hFFFFFFFF;
-            else rd=1'b0;
-   end
-    else if(opcode == SGT) begin
-        w=rs1-rs2;
-        if (rs1[31]^rs2[31]==1)
-          if(rs1[31]==1)
-          rd = 1'b0;
-          else
-          rd ='hFFFFFFFF;
-        else
-            if(w[32]==1|| w==0) rd=1'b0;
-            else rd='hFFFFFFFF;
-    end
-    else if(opcode == SLE) begin
-        w=rs1-rs2;
-        if (rs1[31]^rs2[31]==1)
-          if(rs1[31]==1)
-          rd = 'hFFFFFFFF;
-          else
-          rd = 1'b0;
-        else
-            if(w[32]==1|| w==0) rd='hFFFFFFFF;
-            else rd=1'b0;
-    end
-    else if(opcode == SGE)
-begin
-        w=rs1-rs2;
-        if (rs1[31]^rs2[31]==1)
-          if(rs1[31]==1)
-          rd = 1'b0;
-          else
-          rd = 1'b1;
-        else if(rs1[31]==0)
-            if(w[32]==1) rd=1'b0;
-            else rd='hFFFFFFFF;
-   end
-    else if(opcode == UGT) begin
-        w=rs1-rs2;
-        if(w[32]==1||w==0) rd=1'b0;
-        else rd='hFFFFFFFF;
-        end
-    else if(opcode == ULT)
-        begin
-        w=rs1-rs2;
-        if(w[32]==1) rd='hFFFFFFFF;
-            else rd=1'b0;
-        end 
-    else if(opcode == ULE) begin
-        w=rs1-rs2;
-        if(w[32]==1||w==0) rd='hFFFFFFFF;
-        else rd=1'b0;
-        end
-    else if(opcode == UGE)
-        begin
-        w=rs1-rs2;
-        if(w[32]==1) rd=1'b0;
-            else rd='hFFFFFFFF;
-        end    
-    else if(opcode == LHI)
- 
-    rd = { rs1[31:16], rs2[15:0]};
-    else if(opcode == J)
- 
-    rd = rs1 + rs2;
- else if(opcode == BEZ)
-    if(isRS1zero==1)
-    rd = rs1 + rs2;
-    else
-    rd= rs1+4;
- else if(opcode == BNEZ)
- begin
-    if(isRS1zero!=1)
-    rd = rs1 + rs2;
-    else
-    rd= rs1+4;
-    end
- else if(JAL)
- rd = rs1 + rs2;
- 
-       
-end
-endmodule
+}
 
-///// another ideal solution for functions
+funct_codes = {
 
-`timescale 1ns / 1ps
+     'ADD' : '000000',
+     'SUB' : '000001',
+     'AND' : '000010',
+     'OR'  : '000011',
+     'XOR' : '000100',
+     'SLL' : '000101',
+     'SRL' : '000110',
+     'ROL' : '000111',
+     'ROR' : '001000',
+     'SLT' : '001001',
+     'SGT' : '001010',
+     'SLE' : '001011',
+     'SGE' : '001100',
+     'UGT' : '001101',
+     'ULT' : '001110',
+     'ULE' : '001111',
+     'UGE' : '010000',
+     'SRA' : '010001'
+}
 
-// module top_alu(reset,din,p1,p2,p3,p4,p5,lower_bits,higher_bits,clk,out);
-//   input reset;
-//   input p1,p2,p3,p4,p5;
-//   input lower_bits,higher_bits;   // lower_bits for lsb bits and the other one for higher bits
-//   input clk;
-//   input  [7:0] din;
-//   output reg [15:0]out;
-//   reg  [7:0]instruction_1;
-//   reg  [7:0]instruction_2;
-//   reg  [7:0]instruction_3;
-//   reg  [7:0]instruction_4; 
-//   wire [31:0]instruction_set;
+Rtriadic_funcode = [     'ADD',
+     'SUB',
+     'AND',
+     'OR',
+     'XOR',
+     'SLL',
+     'SRL',
+     'ROL',
+     'ROR',
+     'SLT',
+     'SGT',
+     'SLE',
+     'SGE',
+     'UGT',
+     'ULT',
+     'ULE',
+     'UGE',
+     'SRA']
+
+RItriadic_opcode = ['ADDI',
+    'SUBI',
+    'ANDI' ,
+    'ORI'  ,
+    'XORI' ,
+    'SLLI' ,
+    'SRLI' ,
+    'ROLI' ,
+    'RORI' ,
+    'SLTI' ,
+    'SGTI' ,
+    'SLEI' ,
+    'SGEI' ,
+    'UGTI' ,
+    'ULTI' ,
+    'ULEI' ,
+    'UGEI' ,
+    'SRAI' ,
+    ]
+
+RItriadic_LS = ['LHI'  ,
+    'SB'   ,
+    'SW'   ,
+    'SWH' ,
+    'LB'  ,
+    'LW'  ,
+    'LWH']
+
+Rdiadic_opcode = ['BEZ',
+    'BNEZ','JR',
+    'JALR']
+
+Jtype_opcode = ['J','JAL']
+
+
+
+def assemble_Rtriadic(instruction, count):
+    if(count == 4):
+        t, opcode, rs, rt, rd = instruction.split(' ')
+    else:
+        opcode, rs, rt, rd = instruction.split(' ')
+    opcode_binary = '000000'
+    funct_binary = funct_codes[opcode]
+    
+
+    opcode_binary = '000000'
+    funct_binary = funct_codes[opcode]
+    
+
+    rs_binary = format(int(rs[1:]), '05b')
+    rt_binary = format(int(rt[1:]), '05b')
+    rd_binary = format(int(rd[1:]), '05b')
+    
+
+    binary_code = opcode_binary + rs_binary + rt_binary + rd_binary + '00000' + funct_binary
+    
+
+    return binary_code
+
+
+def assemble_RItriadic(instruction, count):
+    if(count == 4):
+        t, opcode, rs, rd, imm = instruction.split(' ')
+    else:
+        opcode, rs, rd, imm = instruction.split(' ')
+    opcode_binary = opcodes[opcode]
+    funct_binary = '000000'
+
+    rs_binary = format(int(rs[1:]), '05b')
+    rd_binary = format(int(rd[1:]), '05b')
+    imm_binary = format(int(imm), '016b')
+
+    binary_code = opcode_binary + rs_binary + rd_binary + imm_binary 
+
+    return binary_code
+
+def assemble_RItriadic_LR(instruction, count):
+    if(count == 4):
+        t, opcode, rd, imm = instruction.split(' ')
+    else:
+        opcode, rd, imm = instruction.split(' ')
+    imm, rs = imm.split('(')
+    rs, x = rs.split(')')
+    opcode_binary = opcodes[opcode]
+    funct_binary = '000000'
+
+    rs_binary = format(int(rs[1:]), '05b')
+    rd_binary = format(int(rd[1:]), '05b')
+    imm_binary = format(int(imm), '016b')
+
+    binary_code = opcode_binary + rs_binary + rd_binary + imm_binary 
+
+    return binary_code
+
+
+def assemble_Rdiadic(instruction, count):
+    if(count == 4):
+        t, opcode, rs, imm, rd = instruction.split(' ')
+    else:
+        opcode, rs, imm, rd = instruction.split(' ')
+
+
+    opcode_binary = opcodes[opcode]
+    funct_binary = '000000'
+
+    rs_binary = format(int(rs[1:]), '05b')
+    rd_binary = format(int(rd[1:]), '05b')
+    imm_binary = format(int(imm), '016b')
+
+    binary_code = opcode_binary + rs_binary + '00000' + imm_binary 
+
+
+    return binary_code
+
+
+def assemble_J(instruction):
+    opcode, label = instruction.split(' ')
   
-  
-//   wire [5:0]     func_code;
-//   wire [4:0]     rd;
-//   wire [4:0]     rs2;
-//   wire [4:0]     rs1;
-//   wire [5:0]     opcode;
-//   wire [31:0]  num1,num2;
-//   reg  [31:0] temp;
+    opcode_binary = opcodes[opcode]
+    target_address = tag_dic[label]
 
-// always @(posedge clk)
-//   begin
-//     if(reset==1) begin
-//       instruction_1[7:0]<=0;
-//       instruction_2[7:0]<=0;
-//       instruction_3[7:0]<=0;
-//       instruction_4[7:0]<=0;
+    target_address_binary = format(target_address, '026b')
+    binary_code = opcode_binary + target_address_binary
 
-//   end
-  
-//   else if (p1==1'b1) begin
-//     instruction_1[7:0]<=(din);  
-//     end
-//   else if (p2==1'b1) begin
-//     instruction_2[7:0]<=(din);   
-//     end
-//   else if (p3==1'b1) begin
-//     instruction_3[7:0]<=(din);  
-//     end
-//   else if (p4==1'b1)begin
-//     instruction_4[7:0]<=(din);    
-//     end
-//     end
-  
-//   assign instruction_set={instruction_4,instruction_3,instruction_2,instruction_1};
-  
-//   parameter     A = 6'b000000; //ADD  0
-//   parameter     B = 6'b000001; //SUB  1
-//   parameter     C = 6'b000010; //AND  2
-//   parameter     D = 6'b000011; //OR   3
-//   parameter     E = 6'b000100; //XOR  4
-//   parameter     F = 6'b000101; //SLL  5
-//   parameter     G = 6'b000110; //SRL  6
-//   parameter     H = 6'b000111; //SRA  7
-//   parameter     I = 6'b001000; //ROL  8
-//   parameter     J = 6'b001001; //ROR  9
-//   parameter     K = 6'b001010; //SLT 10
-//   parameter     L = 6'b001011; //SGT 11
-//   parameter     M = 6'b001100; //SLE 12
-//   parameter     N = 6'b001101; //SGE 13
-//   parameter     O = 6'b001110; //UGT 14
-//   parameter     P = 6'b001111; //ULT 15
-//   parameter     Q = 6'b010000; //ULE 16
-//   parameter     R = 6'b010001; //UGE 17
-  
-//   wire [5:0] state;
-//   wire signed [31:0] s_num1, s_num2;
+    return binary_code
 
-  
-//   assign func_code = instruction_set[5:0];
-//   assign rd        = instruction_set[15:11];
-//   assign rs2       = instruction_set[20:16];
-//   assign rs1       = instruction_set[25:21];
-//   assign opcode    = instruction_set[31:26];
+def assembler_line(instruction, j):
+    count=0
+    
+    for i in range(0,len(instruction)):
+         if instruction[i]==" ":
+              count+=1
+     
+    if(count == 3):
+        opcode, rs, rt, rd = instruction.split(' ')
+    elif(count == 4):
+        tag, opcode, rs, rt, rd = instruction.split(' ')
+        tag, y = tag.split(':')
+        tag_dic[tag] = j
 
-//   Reg_File r1(out,rd,rs1,rs2,1'b1,1'b1,p5,num1,num2);
+    elif(count == 1):
+        opcode, imm = instruction.split(' ')
+    else:
+        opcode, rs, rd = instruction.split(' ')
 
-//   assign s_num1 = num1;
-//   assign s_num2 = num2;
-  
-//   assign state = func_code;
-//   always @(p5) begin
-  
-//     case( state )
-//       A: begin
-//         temp <= num1+num2;
-//       end
-//       B: begin
-//         temp <= num1-num2;
-//       end
-//       C: begin
-//         temp <= num1 & num2;
-//       end
-//       D: begin
-//         temp <= num1 | num2;
-//       end
-//       E: begin
-//         temp <= num1 ^ num2;
-//       end
-//       F: begin
-//         temp <= num1 << num2;
-//       end
-//       G: begin
-//         temp <= num1 >> num2;
-//       end
-//       H: begin
-//         temp <= num1 >>> num2;
-//       end
-//       I: begin
-//           temp <= (num1<<num2) | (num1>>(32-num2));
-//       end
-//       J: begin
-//             temp <= (num1>>num2) | (num1<<(32-num2));
-//       end
-//       K: begin
-//         temp <= (s_num1 < s_num2)? 32'b1:32'b0;
-//       end
-//       L: begin
-//         temp <=  (s_num1 > s_num2)? 32'b1:32'b0;
-//       end
-//       M: begin
-//         temp <=  (s_num1 <= s_num2)? 32'b1:32'b0;
-//       end
-//       N: begin
-//         temp <=  (s_num1 >= s_num2)? 32'b1:32'b0;
-//       end
-//       O: begin
-//         temp <=  (num1 > num2)? 32'b1:32'b0;
+    if opcode in Rtriadic_funcode:
+      output = assemble_Rtriadic(instruction, count)
 
-//       end
-//       P: begin
-//         temp <= (num1 < num2)? 32'b1:32'b0;
+    elif opcode in RItriadic_opcode:
+      output = assemble_RItriadic(instruction, count)
 
-//       end
-//       Q: begin
-//         temp <= (num1 <= num2)? 32'b1:32'b0;
+    elif opcode in RItriadic_LS:
+      output = assemble_RItriadic_LR(instruction, count)
+    elif opcode in Rdiadic_opcode:
+      output = assemble_Rdiadic(instruction, count)
 
-//       end
-//       R: begin
-//         temp <= (num1 >= num2)? 32'b1:32'b0;
+    elif opcode in Jtype_opcode:
+      output = assemble_J(instruction)
+    else:
+        output = "Invalid Input"
+    
+    return output
+    
 
-//       end
-      
-//     endcase
-//       if(higher_bits==1'b1) begin
-//       out = temp[31:16];
-//       end
-//       else if (lower_bits==1'b1) begin
-//       out = temp[15:0];  
-//       end
-//     end
-  
-// endmodule
+n = int(input())
+inst = []
+
+for i in range(n):
+  x = str(input()) 
+  inst.append(x)
+
+for i in range(n):
+    if(inst[i][0] != '#'):
+        print(assembler_line(inst[i], i))
+
+
